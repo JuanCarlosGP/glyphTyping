@@ -21,8 +21,8 @@ android {
         applicationId = "com.juancarlosgp.glyphtyping"
         minSdk = 34      // El SDK Glyph solo funciona en Nothing OS sobre Android 14+
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.1.1"
         manifestPlaceholders["nothingKey"] = (project.findProperty("nothingKey") as String?) ?: "test"
     }
 
