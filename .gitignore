@@ -1,0 +1,11 @@
+*.iml
+.gradle/
+build/
+local.properties
+.idea/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+# El SDK de Nothing se descarga en el build (ver README); no se redistribuye aquí
+app/libs/

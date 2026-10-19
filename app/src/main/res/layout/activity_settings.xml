@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:fillViewport="true">
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="20dp">
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="glyphTyping" android:textSize="26sp" android:textStyle="bold" />
+        <TextView android:id="@+id/status" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="8dp" />
+        <Button android:id="@+id/btn_accessibility" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="Abrir ajustes de accesibilidad" />
+        <Button android:id="@+id/btn_test" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="Probar efecto en el Glyph" />
+
+        <Switch android:id="@+id/sw_enabled" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="12dp"
+            android:text="Efecto activado" />
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" android:text="Efecto" android:textStyle="bold" />
+        <RadioGroup android:id="@+id/rg_mode" android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <RadioButton android:id="@+id/rb_flash" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:text="Destello por tecla (zonas elegidas a la vez)" />
+            <RadioButton android:id="@+id/rb_bar" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:text="Barra que sube con la velocidad (PPM)" />
+            <RadioButton android:id="@+id/rb_zones" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:text="Zonas distintas (rota entre las elegidas)" />
+        </RadioGroup>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" android:text="Zonas (destello / zonas)" android:textStyle="bold" />
+        <CheckBox android:id="@+id/cb_a" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        <CheckBox android:id="@+id/cb_b" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        <CheckBox android:id="@+id/cb_c" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        <CheckBox android:id="@+id/cb_d" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        <CheckBox android:id="@+id/cb_e" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+
+        <TextView android:id="@+id/tv_flash" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="16dp" />
+        <SeekBar android:id="@+id/sb_flash" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <TextView android:id="@+id/tv_interval" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="12dp" />
+        <SeekBar android:id="@+id/sb_interval" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <TextView android:id="@+id/tv_wpm" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="12dp" />
+        <SeekBar android:id="@+id/sb_wpm" android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Privacidad: esta app solo detecta que el texto ha cambiado. No lee, guarda ni envía lo que escribes, y no tiene permiso de internet." />
+    </LinearLayout>
+</ScrollView>

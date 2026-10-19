@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">glyphTyping</string>
+    <string name="service_label">glyphTyping (Glyph al escribir)</string>
+    <string name="service_description">Enciende el Glyph cada vez que escribes. Solo detecta que el texto ha cambiado; nunca lee ni guarda lo que escribes y no usa internet.</string>
+</resources>
