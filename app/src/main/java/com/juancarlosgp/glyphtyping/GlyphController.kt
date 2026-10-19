@@ -4,6 +4,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.ContentObserver
+import android.net.Uri
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.SystemClock
@@ -68,9 +70,41 @@ class GlyphController private constructor(private val app: Context) {
 
     // ---- Diagnóstico -------------------------------------------------------------------
     /** true si Settings.Global nt_glyph_interface_debug_enable == 1 */
-    fun debugModeEnabled(): Boolean = try {
-        SysSettings.Global.getInt(app.contentResolver, "nt_glyph_interface_debug_enable", 0) == 1
-    } catch (e: Exception) { false }
+    fun debugModeEnabled(): Boolean = GlyphEnv.debugModeEnabled(app)
+
+    // ---- Reintentos sin bucles -------------------------------------------------------------
+    // Si register() falla por falta de modo debug, NO se reintenta en bucle: se espera a que
+    // cambie Settings.Global nt_glyph_interface_debug_enable (ContentObserver). Además hay un
+    // reintento con backoff exponencial (30 s, 60 s, … hasta 15 min) por si el fallo es otro.
+    private var retryDelayMs = INITIAL_RETRY_MS
+    private val retryRunnable = Runnable {
+        if (refs > 0 && state == State.ERROR) { log("reintento automático"); restart() }
+    }
+
+    private fun scheduleRetry() {
+        handler.removeCallbacks(retryRunnable)
+        handler.postDelayed(retryRunnable, retryDelayMs)
+        log("próximo reintento en ${retryDelayMs / 1000} s (o al cambiar el modo debug)")
+        retryDelayMs = (retryDelayMs * 2).coerceAtMost(MAX_RETRY_MS)
+    }
+
+    private val debugObserver = object : ContentObserver(handler) {
+        override fun onChange(selfChange: Boolean, uri: Uri?) {
+            val on = debugModeEnabled()
+            log("cambio en modo debug: ${if (on) "activo" else "inactivo"}")
+            if (on && refs > 0 && state != State.READY) {
+                retryDelayMs = INITIAL_RETRY_MS
+                restart()
+            }
+        }
+    }
+
+    init {
+        try {
+            app.contentResolver.registerContentObserver(
+                SysSettings.Global.getUriFor(GlyphEnv.DEBUG_SETTING), false, debugObserver)
+        } catch (e: Exception) { Log.w(TAG, "observer: $e") }
+    }
 
     private fun glyphServicePackageVisible(): Boolean = try {
         app.packageManager.getPackageInfo("com.nothing.thirdparty", 0); true
@@ -90,6 +124,7 @@ class GlyphController private constructor(private val app: Context) {
     private val connectTimeout = Runnable {
         if (state == State.CONNECTING) {
             val sdk = sdkLogTail()
+            scheduleRetry()
             fail(State.ERROR,
                 "Sin onServiceConnected tras 4 s. Paquete com.nothing.thirdparty visible=" +
                     "${glyphServicePackageVisible()}, servicio resoluble=${glyphServiceResolvable()}." +
@@ -105,16 +140,23 @@ class GlyphController private constructor(private val app: Context) {
                 try {
                     val gm = manager ?: return@post
                     if (!gm.register(Glyph.DEVICE_20111)) {
-                        val dbg = if (debugModeEnabled()) "" else " El modo debug NO está activo."
+                        val why = when {
+                            GlyphEnv.debugModeRequired && !debugModeEnabled() ->
+                                "el modo debug NO está activo (Android 14/15 con clave 'test')"
+                            GlyphEnv.debugModeRequired -> "modo debug activo, pero el sistema rechazó la clave 'test'"
+                            else -> "el sistema rechazó el registro (clave/versión)"
+                        }
                         val sdk = sdkLogTail()
-                        fail(State.ERROR, "register(DEVICE_20111) devolvió false (clave API 'test' " +
-                            "requiere modo debug activo; o clave inválida).$dbg" +
+                        fail(State.ERROR, "register(DEVICE_20111) devolvió false: $why." +
                             if (sdk.isNotEmpty()) "\nSDK: $sdk" else "")
+                        scheduleRetryAfterFail()
                         return@post
                     }
                     log("registrado (DEVICE_20111)")
                     gm.openSession()
                     log("sesión abierta")
+                    retryDelayMs = INITIAL_RETRY_MS
+                    handler.removeCallbacks(retryRunnable)
                     state = State.READY
                     lastError = null
                 } catch (e: Throwable) {
@@ -146,13 +188,26 @@ class GlyphController private constructor(private val app: Context) {
         }
     }
 
-    /** Reintenta la conexión desde cero (botón de la pantalla de ajustes). */
+    /** Reintenta la conexión desde cero (botón "Reconectar"). */
     fun reconnect() {
         handler.post {
-            log("reconectando…")
-            val n = refs
-            if (n > 0) { disconnect(); refs = n; connect() }
+            log("reconectando (manual)…")
+            retryDelayMs = INITIAL_RETRY_MS
+            restart()
         }
+    }
+
+    private fun restart() {
+        val n = refs
+        if (n > 0) { disconnect(); refs = n; connect() }
+    }
+
+    /** Si falta el modo debug, esperamos al ContentObserver; si no, backoff exponencial. */
+    private fun scheduleRetryAfterFail() {
+        if (GlyphEnv.debugModeRequired && !debugModeEnabled()) {
+            handler.removeCallbacks(retryRunnable)
+            log("esperando a que se active el modo debug (sin reintentos en bucle)")
+        } else scheduleRetry()
     }
 
     private fun connect() {
@@ -293,6 +348,8 @@ class GlyphController private constructor(private val app: Context) {
 
     companion object {
         private const val TAG = "glyphTyping"
+        private const val INITIAL_RETRY_MS = 30_000L
+        private const val MAX_RETRY_MS = 15 * 60_000L
         @Volatile private var instance: GlyphController? = null
         fun get(context: Context): GlyphController =
             instance ?: synchronized(this) {
