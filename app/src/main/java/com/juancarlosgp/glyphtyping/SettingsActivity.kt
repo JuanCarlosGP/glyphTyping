@@ -1,6 +1,8 @@
 package com.juancarlosgp.glyphtyping
 
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
@@ -19,6 +21,7 @@ class SettingsActivity : Activity() {
     private lateinit var settings: Settings
     private lateinit var glyph: GlyphController
     private lateinit var status: TextView
+    private lateinit var logView: TextView
     private val ui = Handler(Looper.getMainLooper())
     private val refresh = object : Runnable {
         override fun run() { updateStatus(); ui.postDelayed(this, 1000) }
@@ -30,6 +33,12 @@ class SettingsActivity : Activity() {
         settings = Settings(this)
         glyph = GlyphController.get(this)
         status = findViewById(R.id.status)
+        logView = findViewById(R.id.log)
+        findViewById<Button>(R.id.btn_reconnect).setOnClickListener { glyph.reconnect() }
+        findViewById<Button>(R.id.btn_copylog).setOnClickListener {
+            (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager)
+                .setPrimaryClip(ClipData.newPlainText("glyphTyping log", glyph.logText()))
+        }
 
         findViewById<Button>(R.id.btn_accessibility).setOnClickListener {
             startActivity(Intent(SysSettings.ACTION_ACCESSIBILITY_SETTINGS))
@@ -101,13 +110,16 @@ class SettingsActivity : Activity() {
     private fun updateStatus() {
         val acc = if (accessibilityEnabled()) "activado" else "DESACTIVADO (pulsa el botón de abajo)"
         val g = when (glyph.state) {
-            GlyphController.State.READY -> "conectado"
-            GlyphController.State.CONNECTING -> "conectando…"
+            GlyphController.State.READY -> "sesión abierta (listo)"
+            GlyphController.State.CONNECTING -> "enlazando…"
             GlyphController.State.DISCONNECTED -> "desconectado"
             GlyphController.State.UNSUPPORTED -> "no compatible (solo Phone (1))"
-            GlyphController.State.ERROR -> "error: ${glyph.lastError}"
+            GlyphController.State.ERROR -> "ERROR: ${glyph.lastError}"
         }
-        status.text = "Servicio de accesibilidad: $acc\nGlyph: $g"
+        val dbg = if (glyph.debugModeEnabled()) "activo"
+        else "NO ACTIVO ⚠ ejecuta en el PC: adb shell settings put global nt_glyph_interface_debug_enable 1"
+        status.text = "Accesibilidad: $acc\nModo debug Glyph: $dbg\nGlyph: $g"
+        logView.text = glyph.logText()
     }
 
     override fun onStart() {

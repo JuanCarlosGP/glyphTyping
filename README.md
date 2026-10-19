@@ -46,6 +46,10 @@ adb shell settings put global nt_glyph_interface_debug_enable 1
 - Con una clave real: `./gradlew assembleDebug -PnothingKey=TU_CLAVE`.
 - Nothing indica que la restricción de clave se elimina para apps con target Android 16 (B) o posterior; esta app apunta a Android 14 (`targetSdk = 34`).
 
+### Diagnóstico sin adb (v0.1.1)
+
+La pantalla principal muestra el estado de accesibilidad, si el modo debug está activo (`Settings.Global nt_glyph_interface_debug_enable`) y un **registro de conexión** (enlazando → servicio conectado → registrado → sesión abierta, o el error exacto). El botón *Copiar registro* lo copia al portapapeles y *Reconectar con el Glyph* reintenta. El manifest declara `<queries>` para `com.nothing.thirdparty` (visibilidad de paquetes en Android 11+, necesaria para que el SDK pueda enlazar con el servicio Glyph).
+
 ## Cómo activar la accesibilidad
 
 1. Abre **glyphTyping** y pulsa **Abrir ajustes de accesibilidad** (o ve a *Ajustes → Accesibilidad → Apps instaladas / Servicios descargados*).

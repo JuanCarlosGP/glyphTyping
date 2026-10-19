@@ -4,6 +4,12 @@
     <!-- Único permiso: usar el servicio Glyph del sistema (SDK de Nothing). NO hay INTERNET. -->
     <uses-permission android:name="com.nothing.ketchum.permission.ENABLE" />
 
+    <!-- Visibilidad de paquetes (Android 11+): el SDK Glyph enlaza con el servicio
+         com.nothing.thirdparty.GlyphService. Sin esto bindService() falla en silencio. -->
+    <queries>
+        <package android:name="com.nothing.thirdparty" />
+    </queries>
+
     <application
         android:allowBackup="false"
         android:icon="@drawable/ic_launcher"
