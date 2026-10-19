@@ -6,13 +6,28 @@ App Android para el **Nothing Phone (1)** que ilumina el **Glyph** cuando escrib
 - Kotlin + Gradle, sin dependencias externas salvo el SDK Glyph oficial de Nothing.
 - **Privacidad total**: no se lee ni se guarda el texto, no hay red.
 
+## Para usuarios: instalar en 3 pasos
+
+> Solo funciona en el **Nothing Phone (1)** con Nothing OS sobre Android 14 o superior.
+
+1. **Descarga e instala** el último `glyphTyping-…-debug.apk` desde [Releases](https://github.com/JuanCarlosGP/glyphTyping/releases) (permite «instalar apps desconocidas» si te lo pide).
+2. **Abre la app y sigue el asistente**:
+   - *Paso 1 — Accesibilidad*: el botón abre directamente el ajuste del servicio; actívalo. Si sale gris («Ajuste restringido»), el asistente te lleva a la ficha de la app → ⋮ → «Permitir ajustes restringidos».
+   - *Paso 2 — Modo debug* (solo Android 14/15, p. ej. Nothing OS 3.x): con PC `adb shell settings put global nt_glyph_interface_debug_enable 1`, o sin PC con **Shizuku** (botón «Activar modo debug con Shizuku») o Shizuku + aShell. Caduca a las 48 h. En **Android 16 / Nothing OS 4 no hace falta** y el paso no aparece.
+   - *Paso 3 — Prueba*: el Glyph se enciende; confirma y listo.
+3. **Escribe** con Gboard (o cualquier teclado) y el Glyph se iluminará. Cambia el efecto en *Ajustes avanzados*.
+
+### Sobre la clave oficial de Nothing
+
+El SDK Glyph exige una clave (`NothingKey`) en Android 14/15. Esta app se publica con la clave de pruebas `test`, que solo funciona con el modo debug. Nothing [eliminó esa restricción para apps con target Android 16](https://github.com/Nothing-Developer-Programme/Glyph-Developer-Kit#setup-development-environment) (esta app ya apunta a API 36). Si consigues una clave oficial (se solicita al programa de desarrolladores de Nothing), compila con `./gradlew assembleDebug -PnothingKey=TU_CLAVE` y el paso del modo debug desaparece.
+
 ## Cómo funciona
 
 Un `AccessibilityService` escucha **únicamente** el evento `TYPE_VIEW_TEXT_CHANGED`. Cada vez que cambia un campo de texto, avisa al Glyph (SDK `com.nothing.ketchum`, `Glyph.DEVICE_20111`). Nunca se accede a `event.text` ni al contenido de la pantalla.
 
 ## Requisitos
 
-- Nothing Phone (1) con Nothing OS sobre **Android 14 o superior** (requisito del SDK Glyph; `minSdk = 34`).
+- Nothing Phone (1) con Nothing OS sobre **Android 14 o superior** (requisito del SDK Glyph; `minSdk = 34`, `targetSdk = compileSdk = 36`).
 - Para compilar: JDK 17 y Android SDK (plataforma 35).
 
 ## Instalación
@@ -44,7 +59,8 @@ adb shell settings put global nt_glyph_interface_debug_enable 1
 - Al activarlo aparece una notificación del sistema.
 - **Se desactiva solo a las 48 horas**: vuelve a ejecutar el comando cuando el Glyph deje de responder.
 - Con una clave real: `./gradlew assembleDebug -PnothingKey=TU_CLAVE`.
-- Nothing indica que la restricción de clave se elimina para apps con target Android 16 (B) o posterior; esta app apunta a Android 14 (`targetSdk = 34`).
+- Nothing indica que la restricción de clave se elimina en Android 16 (B) para apps con target 36; la app la mantiene igualmente en el manifest (lo recomienda Nothing). En Android 16+ la app no pide el modo debug.
+- Si `register()` falla por falta de modo debug, la app **no reintenta en bucle**: observa `Settings.Global` y se reconecta sola en cuanto el ajuste cambia (más un reintento con backoff de 30 s a 15 min para otros fallos).
 
 ### Diagnóstico sin adb (v0.1.1)
 
@@ -63,6 +79,7 @@ La pantalla principal muestra el estado de accesibilidad, si el modo debug está
 |---|---|
 | `com.nothing.ketchum.permission.ENABLE` | Permite usar el servicio Glyph del sistema. |
 | Servicio de accesibilidad (`BIND_ACCESSIBILITY_SERVICE`) | Solo para recibir "ha cambiado un texto". Configurado con `typeViewTextChanged` y **`canRetrieveWindowContent=false`**. |
+| Shizuku (`moe.shizuku.manager.permission.API_V23` + `ShizukuProvider`) | **Opcional**. Si Shizuku está en marcha y lo autorizas, la app ejecuta con permisos de shell **una única orden fija**: `settings put global nt_glyph_interface_debug_enable 1` (ver `ShellUserService.kt`). Nada más. |
 | **No** hay `INTERNET` | La app no puede enviar nada fuera del móvil. Puedes comprobarlo con `aapt2 dump permissions`. |
 
 ## Efectos y ajustes
@@ -97,4 +114,7 @@ Limitación conocida: como no se lee el texto, no se distingue escribir de borra
 
 ## Licencia
 
-MIT (ver [LICENSE](LICENSE)). El SDK Glyph de Nothing tiene sus propios términos.
+MIT (ver [LICENSE](LICENSE)). Componentes de terceros:
+- SDK Glyph de Nothing: se descarga en el build, con sus propios términos.
+- [Shizuku API](https://github.com/RikkaApps/Shizuku-API) (`dev.rikka.shizuku`), Apache-2.0.
+- Fuente [Doto](https://github.com/oliverlalan/Doto) (tipografía de puntos), SIL Open Font License 1.1 (ver [FONT-LICENSE-Doto-OFL.txt](FONT-LICENSE-Doto-OFL.txt)).

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:fillViewport="true">
     <LinearLayout
@@ -7,9 +8,11 @@
         android:orientation="vertical" android:padding="20dp">
 
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="glyphTyping" android:textSize="26sp" android:textStyle="bold" />
+            android:text="Ajustes" style="@style/Dot.Title" />
         <TextView android:id="@+id/status" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:layout_marginTop="8dp" />
+        <Button android:id="@+id/btn_wizard" style="@style/Btn.Primary" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="Asistente de configuración" />
         <Button android:id="@+id/btn_accessibility" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:text="Abrir ajustes de accesibilidad" />
         <Button android:id="@+id/btn_test" android:layout_width="match_parent"
@@ -23,7 +26,7 @@
             android:text="Efecto activado" />
 
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="16dp" android:text="Efecto" android:textStyle="bold" />
+            android:layout_marginTop="16dp" android:text="Efecto" android:textStyle="bold" android:textColor="@color/nt_grey" android:letterSpacing="0.1" />
         <RadioGroup android:id="@+id/rg_mode" android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <RadioButton android:id="@+id/rb_flash" android:layout_width="wrap_content"
@@ -35,7 +38,7 @@
         </RadioGroup>
 
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="16dp" android:text="Zonas (destello / zonas)" android:textStyle="bold" />
+            android:layout_marginTop="16dp" android:text="Zonas (destello / zonas)" android:textStyle="bold" android:textColor="@color/nt_grey" android:letterSpacing="0.1" />
         <CheckBox android:id="@+id/cb_a" android:layout_width="wrap_content" android:layout_height="wrap_content" />
         <CheckBox android:id="@+id/cb_b" android:layout_width="wrap_content" android:layout_height="wrap_content" />
         <CheckBox android:id="@+id/cb_c" android:layout_width="wrap_content" android:layout_height="wrap_content" />
@@ -53,7 +56,7 @@
         <SeekBar android:id="@+id/sb_wpm" android:layout_width="match_parent" android:layout_height="wrap_content" />
 
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="20dp" android:text="Registro de conexión" android:textStyle="bold" />
+            android:layout_marginTop="20dp" android:text="Registro de conexión" android:textStyle="bold" android:textColor="@color/nt_grey" android:letterSpacing="0.1" />
         <TextView android:id="@+id/log" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:textSize="12sp"
             android:fontFamily="monospace" android:textIsSelectable="true" />

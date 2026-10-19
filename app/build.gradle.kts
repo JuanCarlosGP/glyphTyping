@@ -15,15 +15,17 @@ val glyphSdkFile = layout.projectDirectory.file("libs/glyph-sdk.aar").asFile
 
 android {
     namespace = "com.juancarlosgp.glyphtyping"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.juancarlosgp.glyphtyping"
         minSdk = 34      // El SDK Glyph solo funciona en Nothing OS sobre Android 14+
-        targetSdk = 34
-        versionCode = 2
-        versionName = "0.1.1"
-        manifestPlaceholders["nothingKey"] = (project.findProperty("nothingKey") as String?) ?: "test"
+        targetSdk = 36   // Android 16: Nothing ya no exige clave API (se mantiene NothingKey)
+        versionCode = 3
+        versionName = "0.2.0"
+        val nothingKey = (project.findProperty("nothingKey") as String?)?.takeIf { it.isNotBlank() } ?: "test"
+        manifestPlaceholders["nothingKey"] = nothingKey
+        buildConfigField("boolean", "HAS_REAL_NOTHING_KEY", (nothingKey != "test").toString())
     }
 
     buildTypes {
@@ -36,6 +38,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
+    buildFeatures {
+        buildConfig = true
+        aidl = true
+    }
 }
 
 val downloadGlyphSdk by tasks.registering {
@@ -58,4 +64,7 @@ tasks.named("preBuild") { dependsOn(downloadGlyphSdk) }
 
 dependencies {
     implementation(files(glyphSdkFile))
+    // Shizuku (Apache-2.0), opcional en tiempo de ejecución: solo para activar el modo debug sin PC
+    implementation("dev.rikka.shizuku:api:13.1.5")
+    implementation("dev.rikka.shizuku:provider:13.1.5")
 }

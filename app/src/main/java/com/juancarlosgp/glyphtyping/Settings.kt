@@ -47,6 +47,10 @@ class Settings(context: Context) {
         get() = prefs.getInt("maxWpm", 80).coerceIn(20, 200)
         set(v) = prefs.edit().putInt("maxWpm", v.coerceIn(20, 200)).apply()
 
+    var onboardingDone: Boolean
+        get() = prefs.getBoolean("onboardingDone", false)
+        set(v) = prefs.edit().putBoolean("onboardingDone", v).apply()
+
     fun zones(): List<Zone> = Zone.values().filter { zonesMask and it.bit != 0 }
         .ifEmpty { listOf(Zone.C) }
 

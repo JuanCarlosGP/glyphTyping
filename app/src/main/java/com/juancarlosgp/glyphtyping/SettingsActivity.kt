@@ -1,9 +1,6 @@
 package com.juancarlosgp.glyphtyping
 
 import android.app.Activity
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -30,14 +27,18 @@ class SettingsActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+        findViewById<android.view.View>(R.id.root).applySystemBarPadding()
+        findViewById<Button>(R.id.btn_wizard).setOnClickListener {
+            startActivity(Intent(this, OnboardingActivity::class.java)
+                .putExtra(OnboardingActivity.EXTRA_FORCE, true))
+        }
         settings = Settings(this)
         glyph = GlyphController.get(this)
         status = findViewById(R.id.status)
         logView = findViewById(R.id.log)
         findViewById<Button>(R.id.btn_reconnect).setOnClickListener { glyph.reconnect() }
         findViewById<Button>(R.id.btn_copylog).setOnClickListener {
-            (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager)
-                .setPrimaryClip(ClipData.newPlainText("glyphTyping log", glyph.logText()))
+            copyToClipboard("glyphTyping log", glyph.logText())
         }
 
         findViewById<Button>(R.id.btn_accessibility).setOnClickListener {
@@ -100,12 +101,7 @@ class SettingsActivity : Activity() {
         })
     }
 
-    private fun accessibilityEnabled(): Boolean {
-        val me = ComponentName(this, TypingAccessibilityService::class.java).flattenToString()
-        val list = SysSettings.Secure.getString(contentResolver,
-            SysSettings.Secure.ENABLED_ACCESSIBILITY_SERVICES) ?: return false
-        return list.split(':').any { it.equals(me, ignoreCase = true) }
-    }
+    private fun accessibilityEnabled(): Boolean = GlyphEnv.accessibilityEnabled(this)
 
     private fun updateStatus() {
         val acc = if (accessibilityEnabled()) "activado" else "DESACTIVADO (pulsa el botón de abajo)"
@@ -116,8 +112,7 @@ class SettingsActivity : Activity() {
             GlyphController.State.UNSUPPORTED -> "no compatible (solo Phone (1))"
             GlyphController.State.ERROR -> "ERROR: ${glyph.lastError}"
         }
-        val dbg = if (glyph.debugModeEnabled()) "activo"
-        else "NO ACTIVO ⚠ ejecuta en el PC: adb shell settings put global nt_glyph_interface_debug_enable 1"
+        val dbg = GlyphEnv.debugStatusText(this)
         status.text = "Accesibilidad: $acc\nModo debug Glyph: $dbg\nGlyph: $g"
         logView.text = glyph.logText()
     }
